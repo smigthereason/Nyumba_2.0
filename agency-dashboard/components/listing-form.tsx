@@ -10,7 +10,7 @@ import { AMENITIES, PROPERTY_TYPES, type Amenity, type Property } from '@/lib/ty
 type FormState = {
   title: string;
   description: string;
-  images: string;
+  images: string[];
   transactionType: 'rent' | 'sale';
   propertyType: Property['propertyType'];
   priceKes: string;
@@ -32,7 +32,7 @@ function fromListing(p?: Property): FormState {
   return {
     title: p?.title ?? '',
     description: p?.description ?? '',
-    images: p?.images.join('\n') ?? '',
+    images: p?.images ?? [],
     transactionType: p?.transactionType ?? 'rent',
     propertyType: p?.propertyType ?? 'apartment',
     priceKes: p ? String(p.priceKes) : '',
@@ -56,6 +56,8 @@ export function ListingForm({ listing }: { listing?: Property }) {
   const [form, setForm] = useState<FormState>(fromListing(listing));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadLabel, setUploadLabel] = useState<string | null>(null);
   const [more, setMore] = useState(false);
 
   const estates = useMemo(
@@ -74,6 +76,57 @@ export function ListingForm({ listing }: { listing?: Property }) {
     }));
   }
 
+  async function uploadImages(files: FileList | null) {
+    if (!files?.length) return;
+    const selected = Array.from(files);
+    if (form.images.length + selected.length > 20) {
+      setError('A listing can contain at most 20 photos.');
+      return;
+    }
+
+    const allowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
+    const maxBytes = 8 * 1024 * 1024;
+    const invalid = selected.find((file) => !allowed.has(file.type) || file.size > maxBytes);
+    if (invalid) {
+      setError(`${invalid.name} must be a JPG, PNG, or WebP image no larger than 8 MB.`);
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+    const uploaded: string[] = [];
+    try {
+      for (let index = 0; index < selected.length; index += 1) {
+        const file = selected[index];
+        setUploadLabel(`Uploading ${index + 1} of ${selected.length}…`);
+        const body = new FormData();
+        body.append('file', file);
+        const res = await fetch('/api/uploads/property-image', { method: 'POST', body });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.url) {
+          throw new Error(data.error ?? `Could not upload ${file.name}.`);
+        }
+        uploaded.push(String(data.url));
+      }
+      setForm((current) => ({ ...current, images: [...current.images, ...uploaded] }));
+    } catch (uploadError) {
+      if (uploaded.length) {
+        setForm((current) => ({ ...current, images: [...current.images, ...uploaded] }));
+      }
+      setError(uploadError instanceof Error ? uploadError.message : 'Could not upload images.');
+    } finally {
+      setUploading(false);
+      setUploadLabel(null);
+    }
+  }
+
+  function removeImage(index: number) {
+    setForm((current) => ({
+      ...current,
+      images: current.images.filter((_, imageIndex) => imageIndex !== index),
+    }));
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -87,7 +140,7 @@ export function ListingForm({ listing }: { listing?: Property }) {
       parking: form.parking ? Number(form.parking) : undefined,
       lat: form.lat ? Number(form.lat) : undefined,
       lng: form.lng ? Number(form.lng) : undefined,
-      images: form.images.split('\n').map((u) => u.trim()).filter(Boolean),
+      images: form.images,
     };
     const url = listing ? `/api/listings/${listing.id}` : '/api/listings';
     const res = await fetch(url, {
@@ -132,13 +185,52 @@ export function ListingForm({ listing }: { listing?: Property }) {
         <Field label="Description">
           <Textarea value={form.description} onChange={(e) => set('description', e.target.value)} />
         </Field>
-        <Field label="Photo URLs" hint="One link per line. First photo is the cover.">
-          <Textarea
-            value={form.images}
-            onChange={(e) => set('images', e.target.value)}
-            placeholder="https://…"
-            className="min-h-[88px]"
+        <Field
+          label="Property photos"
+          hint="Upload JPG, PNG, or WebP images up to 8 MB each. The first photo becomes the cover."
+        >
+          <Input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            disabled={uploading || busy || form.images.length >= 20}
+            onChange={(e) => {
+              void uploadImages(e.target.files);
+              e.currentTarget.value = '';
+            }}
           />
+          {uploading ? (
+            <p className="mt-2 text-sm font-medium text-primary">{uploadLabel ?? 'Uploading…'}</p>
+          ) : null}
+          {form.images.length ? (
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {form.images.map((url, index) => (
+                <div key={`${url}-${index}`} className="overflow-hidden rounded-xl border border-line bg-bg">
+                  <div
+                    className="aspect-[4/3] bg-cover bg-center"
+                    style={{ backgroundImage: `url("${url.replace(/"/g, '%22')}")` }}
+                    role="img"
+                    aria-label={`Property photo ${index + 1}`}
+                  />
+                  <div className="flex items-center justify-between gap-2 px-2.5 py-2">
+                    <span className="text-xs font-medium text-muted">
+                      {index === 0 ? 'Cover photo' : `Photo ${index + 1}`}
+                    </span>
+                    <button
+                      type="button"
+                      className="text-xs font-semibold text-danger"
+                      onClick={() => removeImage(index)}
+                      disabled={uploading || busy}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-muted">No photos uploaded yet.</p>
+          )}
         </Field>
       </Card>
 
@@ -323,14 +415,14 @@ export function ListingForm({ listing }: { listing?: Property }) {
       </Card>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" disabled={busy}>
-          {busy ? 'Saving…' : listing ? 'Save listing' : 'Publish listing'}
+        <Button type="submit" disabled={busy || uploading}>
+          {uploading ? 'Uploading photos…' : busy ? 'Saving…' : listing ? 'Save listing' : 'Publish listing'}
         </Button>
         <Button href="/dashboard/listings" variant="secondary">
           Cancel
         </Button>
         {listing ? (
-          <Button type="button" variant="danger" onClick={onDelete} disabled={busy}>
+          <Button type="button" variant="danger" onClick={onDelete} disabled={busy || uploading}>
             Delete
           </Button>
         ) : null}

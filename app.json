@@ -62,7 +62,8 @@
       "router": {},
       "eas": {
         "projectId": "92bf763c-854a-4000-a48e-b39f4a69fce4"
-      }
+      },
+      "publicApiUrl": "https://nyumba-2-0.vercel.app"
     }
   }
 }

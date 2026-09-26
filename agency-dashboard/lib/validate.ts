@@ -73,9 +73,9 @@ export function parseListingInput(
         .map((u) => u.trim())
         .filter(Boolean);
 
-  if (images.length === 0) return { error: 'Add at least one photo URL.' };
-  if (images.length > 20) return { error: 'A listing can contain at most 20 photo URLs.' };
-  if (images.some((image) => !isHttpUrl(image))) return { error: 'Every photo must use a valid http(s) URL.' };
+  if (images.length === 0) return { error: 'Upload at least one property photo.' };
+  if (images.length > 20) return { error: 'A listing can contain at most 20 photos.' };
+  if (images.some((image) => !isHttpUrl(image))) return { error: 'Every stored photo must have a valid http(s) URL.' };
 
   const amenities = Array.isArray(body.amenities)
     ? [...new Set((body.amenities as unknown[]).filter((a): a is Amenity => AMENITIES.includes(a as Amenity)))]

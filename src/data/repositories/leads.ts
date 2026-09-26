@@ -1,3 +1,5 @@
+import Constants from 'expo-constants';
+
 import { getSupabase, isSupabaseConfigured } from '@/src/lib/supabase';
 
 export type CreateLeadInput = {
@@ -10,8 +12,15 @@ export type CreateLeadInput = {
   type?: 'viewing' | 'purchase';
 };
 
+function publicApiBase(): string | null {
+  const configured = process.env.EXPO_PUBLIC_API_URL ?? process.env.EXPO_PUBLIC_AGENCY_API_URL;
+  const appConfig = Constants.expoConfig?.extra?.publicApiUrl;
+  const value = configured || (typeof appConfig === 'string' ? appConfig : '');
+  return value ? value.replace(/\/$/, '') : null;
+}
+
 async function postToBackend(input: CreateLeadInput): Promise<{ ok: boolean; error?: string } | null> {
-  const base = (process.env.EXPO_PUBLIC_API_URL ?? process.env.EXPO_PUBLIC_AGENCY_API_URL)?.replace(/\/$/, '');
+  const base = publicApiBase();
   if (!base) return null;
   try {
     const response = await fetch(`${base}/api/leads`, {
@@ -39,7 +48,9 @@ export async function createLead(input: CreateLeadInput): Promise<{ ok: boolean;
   if (apiResult) return apiResult;
 
   if (!isSupabaseConfigured) return { ok: true };
-  if (!input.userId) return { ok: false, error: 'Public lead API is not configured.' };
+  if (!input.userId) {
+    return { ok: false, error: 'Viewing requests are temporarily unavailable. Please try again shortly.' };
+  }
 
   const supabase = getSupabase();
   if (!supabase) return { ok: false, error: 'Backend is not available.' };
