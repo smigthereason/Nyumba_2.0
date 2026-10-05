@@ -53,16 +53,17 @@ export default function DiscoverScreen() {
   );
 
   const load = useCallback(async () => {
-    const [featuredA, allA, featuredP, upcoming] = await Promise.all([
+    const [featuredA, allA, featuredP, upcoming] = await Promise.allSettled([
       getFeaturedAgencies(county),
       getAgencies({ county }),
       getFeaturedProperties(county),
       getUpcomingProjects(county),
     ]);
-    setFeaturedAgencies(featuredA);
-    setAgencies(allA);
-    setFeaturedProperties(featuredP);
-    setProjects(upcoming);
+
+    setFeaturedAgencies(featuredA.status === 'fulfilled' ? featuredA.value : []);
+    setAgencies(allA.status === 'fulfilled' ? allA.value : []);
+    setFeaturedProperties(featuredP.status === 'fulfilled' ? featuredP.value : []);
+    setProjects(upcoming.status === 'fulfilled' ? upcoming.value : []);
   }, [county]);
 
   useEffect(() => {
@@ -104,8 +105,13 @@ export default function DiscoverScreen() {
             <Text style={styles.logoText}>Nyumba</Text>
           </View>
 
-          <Pressable onPress={() => router.push('/(tabs)/profile')} hitSlop={8}>
-            <Ionicons name="person" size={24} color={colors.primary} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Account"
+            style={({ pressed }) => [styles.accountButton, pressed && { opacity: 0.6 }]}
+            onPress={() => router.push('/(tabs)/profile')}
+          >
+            <Ionicons name="person-circle-outline" size={28} color={colors.primary} />
           </Pressable>
         </View>
 
@@ -264,6 +270,13 @@ const styles = StyleSheet.create({
   logoText: {
     ...typography.title,
     color: colors.primary,
+  },
+  accountButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   greetingBlock: {
     marginTop: spacing.lg,

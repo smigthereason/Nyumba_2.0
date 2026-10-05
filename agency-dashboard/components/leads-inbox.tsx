@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 
 import { Button, Card, EmptyState, Pill } from '@/components/ui';
-import { telLink, timeAgo, waLink } from '@/lib/format';
+import { smsLink, telLink, timeAgo, waLink } from '@/lib/format';
 import type { Lead, LeadStatus, Property } from '@/lib/types';
 
 const FILTERS: { id: 'new' | 'all' | 'contacted' | 'closed'; label: string }[] = [
@@ -46,7 +46,7 @@ export function LeadsInbox({
     return (
       <EmptyState
         title="No leads yet"
-        body="When a buyer requests a viewing or sends a purchase invoice, it lands here."
+        body="When a buyer requests a viewing or sends a purchase enquiry, it lands here."
       />
     );
   }
@@ -70,6 +70,7 @@ export function LeadsInbox({
           </button>
         ))}
       </div>
+
       {shown.length === 0 ? (
         <EmptyState title="Inbox is clear" body="No leads in this filter." />
       ) : (
@@ -77,13 +78,15 @@ export function LeadsInbox({
           {shown.map((lead) => {
             const open = openId === lead.id;
             const call = telLink(lead.phone);
+            const text = smsLink(lead.phone);
             const wa = waLink(lead.phone);
             return (
               <Card key={lead.id} className="overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setOpenId(open ? null : lead.id)}
-                  className="flex w-full items-center gap-4 px-5 py-4 text-left"
+                  className="flex w-full items-center gap-4 px-5 py-4 text-left hover:bg-bg/70"
+                  aria-expanded={open}
                 >
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold">{lead.name || 'Buyer'}</p>
@@ -102,15 +105,38 @@ export function LeadsInbox({
                     {lead.status}
                   </Pill>
                 </button>
+
                 {open ? (
-                  <div className="space-y-4 border-t border-line px-5 py-4">
-                    <p className="text-sm leading-relaxed text-ink">{lead.message}</p>
-                    {lead.phone ? (
-                      <p className="text-sm text-muted">{lead.phone}</p>
-                    ) : null}
-                    <div className="flex flex-wrap gap-2">
+                  <div className="space-y-5 border-t border-line px-5 py-5">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-faint">Request</p>
+                      <p className="mt-1 text-sm leading-relaxed text-ink">{lead.message}</p>
+                    </div>
+
+                    <div className="rounded-xl border border-line bg-bg px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-faint">Contact buyer</p>
+                      {lead.phone ? (
+                        <>
+                          <p className="mt-1 font-semibold text-ink">{lead.phone}</p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {call ? <Button href={call}>Call</Button> : null}
+                            {text ? <Button href={text} variant="secondary">Text</Button> : null}
+                            {wa ? <Button href={wa} variant="secondary">WhatsApp</Button> : null}
+                          </div>
+                        </>
+                      ) : (
+                        <p className="mt-1 text-sm text-muted">
+                          This older request has no phone number. New viewing requests require one.
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 border-t border-line pt-4">
+                      <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-faint">
+                        Lead status
+                      </span>
                       {lead.status !== 'contacted' ? (
-                        <Button type="button" onClick={() => setStatus(lead.id, 'contacted')}>
+                        <Button type="button" variant="secondary" onClick={() => setStatus(lead.id, 'contacted')}>
                           Mark contacted
                         </Button>
                       ) : null}
@@ -131,16 +157,6 @@ export function LeadsInbox({
                           Reopen
                         </Button>
                       )}
-                      {call ? (
-                        <Button href={call} variant="ghost">
-                          Call
-                        </Button>
-                      ) : null}
-                      {wa ? (
-                        <Button href={wa} variant="ghost">
-                          WhatsApp
-                        </Button>
-                      ) : null}
                     </div>
                   </div>
                 ) : null}

@@ -22,10 +22,16 @@ function publicApiBase(): string | null {
 async function postToBackend(input: CreateLeadInput): Promise<{ ok: boolean; error?: string } | null> {
   const base = publicApiBase();
   if (!base) return null;
+
   try {
+    const supabase = getSupabase();
+    const session = supabase ? (await supabase.auth.getSession()).data.session : null;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+
     const response = await fetch(`${base}/api/leads`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         propertyId: input.propertyId,
         agencyId: input.agencyId,
@@ -36,7 +42,9 @@ async function postToBackend(input: CreateLeadInput): Promise<{ ok: boolean; err
       }),
     });
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok) return { ok: false, error: String(payload?.error ?? 'Unable to send request.') };
+    if (!response.ok) {
+      return { ok: false, error: String(payload?.error ?? 'Unable to send request.') };
+    }
     return { ok: true };
   } catch {
     return { ok: false, error: 'Network error. Please try again.' };

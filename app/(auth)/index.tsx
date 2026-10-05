@@ -89,6 +89,9 @@ export default function LoginScreen() {
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
+            autoComplete="email"
+            textContentType="emailAddress"
+            returnKeyType="next"
           />
           <AuthTextField
             label="Password"
@@ -97,6 +100,10 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
             isPassword
+            autoComplete="current-password"
+            textContentType="password"
+            returnKeyType="done"
+            onSubmitEditing={onSubmit}
           />
 
           {error ? (
@@ -109,6 +116,7 @@ export default function LoginScreen() {
           <PrimaryButton
             label={submitting ? 'Signing in…' : 'Sign in'}
             onPress={onSubmit}
+            disabled={submitting || !isConfigured}
             fullWidth
             style={{ marginTop: spacing.sm }}
           />

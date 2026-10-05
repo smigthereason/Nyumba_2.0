@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
+import { Pressable, StyleProp, StyleSheet, Text, ViewStyle } from 'react-native';
 
 import { colors, radius, spacing, typography } from '@/src/theme';
 
@@ -8,8 +8,10 @@ type Props = {
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'accent' | 'ghost';
   icon?: keyof typeof Ionicons.glyphMap;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   fullWidth?: boolean;
+  disabled?: boolean;
+  accessibilityLabel?: string;
 };
 
 export function PrimaryButton({
@@ -19,6 +21,8 @@ export function PrimaryButton({
   icon,
   style,
   fullWidth,
+  disabled = false,
+  accessibilityLabel,
 }: Props) {
   const isPrimary = variant === 'primary';
   const isAccent = variant === 'accent';
@@ -27,30 +31,31 @@ export function PrimaryButton({
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
-      style={[
+      style={({ pressed }) => [
         styles.btn,
         isPrimary && styles.primary,
         isAccent && styles.accent,
         isSecondary && styles.secondary,
         isGhost && styles.ghost,
         fullWidth && styles.fullWidth,
+        pressed && !disabled && styles.pressed,
+        disabled && styles.disabled,
         style,
       ]}
     >
       {icon ? (
         <Ionicons
           name={icon}
-          size={18}
+          size={19}
           color={isSecondary || isGhost ? colors.primary : colors.textInverse}
         />
       ) : null}
-      <Text
-        style={[
-          styles.label,
-          (isSecondary || isGhost) && styles.labelDark,
-        ]}
-      >
+      <Text style={[styles.label, (isSecondary || isGhost) && styles.labelDark]}>
         {label}
       </Text>
     </Pressable>
@@ -59,13 +64,14 @@ export function PrimaryButton({
 
 const styles = StyleSheet.create({
   btn: {
+    minHeight: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    paddingVertical: spacing.md + 2,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
-    borderRadius: radius.full,
+    borderRadius: radius.md,
   },
   primary: {
     backgroundColor: colors.primary,
@@ -74,19 +80,26 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
   },
   secondary: {
-    backgroundColor: colors.primarySoft,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: colors.borderStrong,
   },
   ghost: {
     backgroundColor: 'transparent',
   },
   fullWidth: {
-    flex: 1,
+    width: '100%',
+  },
+  pressed: {
+    opacity: 0.78,
+  },
+  disabled: {
+    opacity: 0.5,
   },
   label: {
     ...typography.bodyBold,
     color: colors.textInverse,
+    textAlign: 'center',
   },
   labelDark: {
     color: colors.primary,

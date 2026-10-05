@@ -31,7 +31,7 @@ export default function WebSignupPage() {
       return;
     }
     setLoading(true);
-    const result = await signUp(email.trim(), password, fullName.trim());
+    const result = await signUp(email.trim(), password, fullName.trim(), '');
     setLoading(false);
     if (result.error) {
       setError(result.error);

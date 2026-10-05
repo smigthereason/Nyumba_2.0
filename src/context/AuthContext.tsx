@@ -17,6 +17,11 @@ export type Profile = {
   role: string;
 };
 
+type SignUpResult = {
+  error?: string;
+  needsEmailConfirmation?: boolean;
+};
+
 type AuthContextValue = {
   user: User | null;
   session: Session | null;
@@ -27,10 +32,12 @@ type AuthContextValue = {
   signUp: (
     email: string,
     password: string,
-    fullName?: string
-  ) => Promise<{ error?: string }>;
+    fullName: string,
+    phone: string
+  ) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  updateProfile: (input: { fullName: string; phone: string }) => Promise<{ error?: string }>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -92,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = useCallback(async (email: string, password: string) => {
     const supabase = getSupabase();
     if (!supabase) {
-      return { error: 'Backend not configured. Add Supabase keys to .env' };
+      return { error: 'Accounts are unavailable until Supabase is configured.' };
     }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
@@ -100,20 +107,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = useCallback(
-    async (email: string, password: string, fullName?: string) => {
+    async (email: string, password: string, fullName: string, phone: string): Promise<SignUpResult> => {
       const supabase = getSupabase();
       if (!supabase) {
-        return { error: 'Backend not configured. Add Supabase keys to .env' };
+        return { error: 'Accounts are unavailable until Supabase is configured.' };
       }
-      const { error } = await supabase.auth.signUp({
+
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { full_name: fullName ?? '' },
+          data: {
+            full_name: fullName,
+            phone,
+          },
         },
       });
+
       if (error) return { error: error.message };
-      return {};
+      return { needsEmailConfirmation: !data.session };
     },
     []
   );
@@ -131,6 +143,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
+  const updateProfile = useCallback(
+    async ({ fullName, phone }: { fullName: string; phone: string }) => {
+      if (!user) return { error: 'Sign in to save contact details.' };
+      const supabase = getSupabase();
+      if (!supabase) return { error: 'Backend is unavailable.' };
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ full_name: fullName.trim(), phone: phone.trim() })
+        .eq('id', user.id);
+      if (error) return { error: error.message };
+
+      const next = await loadProfile(user.id);
+      setProfile(next);
+      return {};
+    },
+    [user]
+  );
+
   const value = useMemo(
     () => ({
       user,
@@ -142,8 +173,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signUp,
       signOut,
       refreshProfile,
+      updateProfile,
     }),
-    [user, session, profile, loading, signIn, signUp, signOut, refreshProfile]
+    [
+      user,
+      session,
+      profile,
+      loading,
+      signIn,
+      signUp,
+      signOut,
+      refreshProfile,
+      updateProfile,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

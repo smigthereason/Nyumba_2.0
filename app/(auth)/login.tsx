@@ -96,7 +96,7 @@ export default function LoginScreen() {
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>New to Nyumba?</Text>
-        <Link href={"/signup" as any} asChild>
+        <Link href={"/(auth)/signup" as any} asChild>
           <Pressable>
             <Text style={styles.link}>Create account</Text>
           </Pressable>
@@ -113,9 +113,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   back: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',

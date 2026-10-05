@@ -16,6 +16,8 @@ import type {
 const DB_PATH = path.join(process.cwd(), 'data', 'db.json');
 const PAGE_MAX = 100;
 
+type SupabaseRow = Record<string, unknown>;
+
 let chain: Promise<unknown> = Promise.resolve();
 
 export class DataStoreError extends Error {
@@ -95,7 +97,7 @@ async function supabaseRequest<T>(
   }
 
   const text = await response.text();
-  let payload: any = null;
+  let payload: unknown = null;
   if (text) {
     try {
       payload = JSON.parse(text);
@@ -104,8 +106,14 @@ async function supabaseRequest<T>(
     }
   }
   if (!response.ok) {
-    const code = String(payload?.code ?? `HTTP_${response.status}`);
-    const message = String(payload?.message ?? payload?.hint ?? `Supabase request failed (${response.status}).`);
+    const errorPayload: SupabaseRow =
+      payload && typeof payload === 'object' && !Array.isArray(payload)
+        ? (payload as SupabaseRow)
+        : {};
+    const code = String(errorPayload.code ?? `HTTP_${response.status}`);
+    const message = String(
+      errorPayload.message ?? errorPayload.hint ?? `Supabase request failed (${response.status}).`
+    );
     throw new DataStoreError(message, code, payload);
   }
   return { data: payload as T, response };
@@ -178,7 +186,7 @@ function safeOffset(offset = 0): number {
   return Number.isFinite(offset) ? Math.max(0, Math.min(10_000, Math.floor(offset))) : 0;
 }
 
-function mapAgencyRow(row: Record<string, any>, listingCount = 0): Agency {
+function mapAgencyRow(row: SupabaseRow, listingCount = 0): Agency {
   return {
     id: String(row.id),
     name: String(row.name ?? ''),
@@ -197,20 +205,20 @@ function mapAgencyRow(row: Record<string, any>, listingCount = 0): Agency {
     yearsActive: Number(row.years_active ?? 0),
     responseRate: Number(row.response_rate ?? 0),
     featured: Boolean(row.featured),
-    bankAccount: row.bank_account ?? undefined,
+    bankAccount: (row.bank_account ?? undefined) as Agency['bankAccount'],
   };
 }
 
-function mapPropertyRow(row: Record<string, any>): Property {
+function mapPropertyRow(row: SupabaseRow): Property {
   return {
     id: String(row.id),
     agencyId: String(row.agency_id),
     title: String(row.title ?? ''),
     description: String(row.description ?? ''),
-    transactionType: row.transaction_type,
-    propertyType: row.property_type,
+    transactionType: row.transaction_type as Property['transactionType'],
+    propertyType: row.property_type as Property['propertyType'],
     priceKes: Number(row.price_kes ?? 0),
-    rentPeriod: row.rent_period ?? undefined,
+    rentPeriod: (row.rent_period ?? undefined) as Property['rentPeriod'],
     bedrooms: Number(row.bedrooms ?? 0),
     bathrooms: Number(row.bathrooms ?? 0),
     sqm: row.sqm == null ? undefined : Number(row.sqm),
@@ -220,10 +228,10 @@ function mapPropertyRow(row: Record<string, any>): Property {
     estate: String(row.estate ?? ''),
     lat: Number(row.lat ?? 0),
     lng: Number(row.lng ?? 0),
-    amenities: Array.isArray(row.amenities) ? row.amenities : [],
+    amenities: Array.isArray(row.amenities) ? (row.amenities as Property['amenities']) : [],
     images: Array.isArray(row.images) ? row.images.map(String) : [],
     featured: Boolean(row.featured),
-    status: row.status,
+    status: row.status as Property['status'],
     createdAt: String(row.created_at ?? new Date(0).toISOString()),
   };
 }
@@ -255,7 +263,7 @@ function propertyToRow(property: Property) {
   };
 }
 
-function mapProjectRow(row: Record<string, any>): UpcomingProject {
+function mapProjectRow(row: SupabaseRow): UpcomingProject {
   return {
     id: String(row.id),
     agencyId: String(row.agency_id),
@@ -267,7 +275,7 @@ function mapProjectRow(row: Record<string, any>): UpcomingProject {
     priceFromKes: Number(row.price_from_kes ?? 0),
     completionLabel: String(row.completion_label ?? ''),
     unitsLeft: row.units_left == null ? undefined : Number(row.units_left),
-    propertyType: row.property_type,
+    propertyType: row.property_type as UpcomingProject['propertyType'],
   };
 }
 
@@ -287,7 +295,7 @@ function projectToRow(project: UpcomingProject) {
   };
 }
 
-function mapLeadRow(row: Record<string, any>): Lead {
+function mapLeadRow(row: SupabaseRow): Lead {
   return {
     id: String(row.id),
     propertyId: String(row.property_id),
@@ -296,7 +304,7 @@ function mapLeadRow(row: Record<string, any>): Lead {
     phone: row.phone ? String(row.phone) : undefined,
     message: String(row.message ?? ''),
     type: row.type === 'purchase' ? 'purchase' : 'viewing',
-    status: row.status,
+    status: row.status as Lead['status'],
     createdAt: String(row.created_at ?? new Date(0).toISOString()),
   };
 }
@@ -318,7 +326,7 @@ export async function getAgencyById(id: string): Promise<Agency | null> {
     return account ? toPublicAgency(account, listingCountFor(db, id)) : null;
   }
   const [{ data }, listingCount] = await Promise.all([
-    supabaseRequest<Record<string, any>[]>('agencies', {
+    supabaseRequest<SupabaseRow[]>('agencies', {
       query: { select: '*', id: `eq.${id}`, limit: 1 },
     }),
     countRows('properties', { agency_id: `eq.${id}`, status: 'eq.active' }),
@@ -338,7 +346,7 @@ export async function findAgencyAccountByEmail(
       passwordHash: account.passwordHash,
     };
   }
-  const { data } = await supabaseRequest<Record<string, any>[]>('agency_accounts', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('agency_accounts', {
     query: { select: 'agency_id,password_hash', email: `eq.${email.toLowerCase()}`, limit: 1 },
   });
   if (!data[0]) return null;
@@ -452,7 +460,7 @@ export async function listAgencyListings(
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(safeOffset(offset), safeOffset(offset) + clampLimit(limit));
   }
-  const { data } = await supabaseRequest<Record<string, any>[]>('properties', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('properties', {
     query: {
       select: '*',
       agency_id: `eq.${agencyId}`,
@@ -469,7 +477,7 @@ export async function getAgencyListing(agencyId: string, id: string): Promise<Pr
     const db = await readDb();
     return db.properties.find((p) => p.id === id && p.agencyId === agencyId) ?? null;
   }
-  const { data } = await supabaseRequest<Record<string, any>[]>('properties', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('properties', {
     query: { select: '*', agency_id: `eq.${agencyId}`, id: `eq.${id}`, limit: 1 },
   });
   return data[0] ? mapPropertyRow(data[0]) : null;
@@ -480,7 +488,7 @@ export async function createAgencyListing(property: Property): Promise<Property>
     await updateDb((db) => db.properties.unshift(property));
     return property;
   }
-  const { data } = await supabaseRequest<Record<string, any>[]>('properties', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('properties', {
     method: 'POST',
     body: propertyToRow(property),
     prefer: 'return=representation',
@@ -498,7 +506,7 @@ export async function updateAgencyListing(property: Property): Promise<Property>
     });
     return property;
   }
-  const { data } = await supabaseRequest<Record<string, any>[]>('properties', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('properties', {
     method: 'PATCH',
     query: { id: `eq.${property.id}`, agency_id: `eq.${property.agencyId}` },
     body: propertyToRow(property),
@@ -518,7 +526,7 @@ export async function deleteAgencyListing(agencyId: string, id: string): Promise
     });
     return found;
   }
-  const { data } = await supabaseRequest<Record<string, any>[]>('properties', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('properties', {
     method: 'DELETE',
     query: { id: `eq.${id}`, agency_id: `eq.${agencyId}` },
     prefer: 'return=representation',
@@ -537,7 +545,7 @@ export async function listAgencyProjects(
       .filter((p) => p.agencyId === agencyId)
       .slice(safeOffset(offset), safeOffset(offset) + clampLimit(limit));
   }
-  const { data } = await supabaseRequest<Record<string, any>[]>('upcoming_projects', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('upcoming_projects', {
     query: {
       select: '*',
       agency_id: `eq.${agencyId}`,
@@ -554,7 +562,7 @@ export async function getAgencyProject(agencyId: string, id: string): Promise<Up
     const db = await readDb();
     return db.projects.find((p) => p.id === id && p.agencyId === agencyId) ?? null;
   }
-  const { data } = await supabaseRequest<Record<string, any>[]>('upcoming_projects', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('upcoming_projects', {
     query: { select: '*', agency_id: `eq.${agencyId}`, id: `eq.${id}`, limit: 1 },
   });
   return data[0] ? mapProjectRow(data[0]) : null;
@@ -565,7 +573,7 @@ export async function createAgencyProject(project: UpcomingProject): Promise<Upc
     await updateDb((db) => db.projects.unshift(project));
     return project;
   }
-  const { data } = await supabaseRequest<Record<string, any>[]>('upcoming_projects', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('upcoming_projects', {
     method: 'POST',
     body: projectToRow(project),
     prefer: 'return=representation',
@@ -583,7 +591,7 @@ export async function updateAgencyProject(project: UpcomingProject): Promise<Upc
     });
     return project;
   }
-  const { data } = await supabaseRequest<Record<string, any>[]>('upcoming_projects', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('upcoming_projects', {
     method: 'PATCH',
     query: { id: `eq.${project.id}`, agency_id: `eq.${project.agencyId}` },
     body: projectToRow(project),
@@ -603,7 +611,7 @@ export async function deleteAgencyProject(agencyId: string, id: string): Promise
     });
     return found;
   }
-  const { data } = await supabaseRequest<Record<string, any>[]>('upcoming_projects', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('upcoming_projects', {
     method: 'DELETE',
     query: { id: `eq.${id}`, agency_id: `eq.${agencyId}` },
     prefer: 'return=representation',
@@ -623,7 +631,7 @@ export async function listAgencyLeads(
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(safeOffset(offset), safeOffset(offset) + clampLimit(limit));
   }
-  const { data } = await supabaseRequest<Record<string, any>[]>('leads', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('leads', {
     query: {
       select: '*',
       agency_id: `eq.${agencyId}`,
@@ -659,7 +667,7 @@ export async function updateAgencyLeadStatus(
     });
     return lead;
   }
-  const { data } = await supabaseRequest<Record<string, any>[]>('leads', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('leads', {
     method: 'PATCH',
     query: { id: `eq.${id}`, agency_id: `eq.${agencyId}` },
     body: { status },
@@ -694,7 +702,7 @@ export async function createPublicLead(
     return lead;
   }
 
-  const { data: propertyRows } = await supabaseRequest<Record<string, any>[]>('properties', {
+  const { data: propertyRows } = await supabaseRequest<SupabaseRow[]>('properties', {
     query: {
       select: 'id,agency_id,status',
       id: `eq.${input.propertyId}`,
@@ -705,7 +713,7 @@ export async function createPublicLead(
   });
   if (!propertyRows[0]) throw new DataStoreError('Unknown listing.', 'NOT_FOUND');
 
-  const { data } = await supabaseRequest<Record<string, any>[]>('leads', {
+  const { data } = await supabaseRequest<SupabaseRow[]>('leads', {
     method: 'POST',
     body: {
       property_id: input.propertyId,
@@ -735,7 +743,7 @@ export async function consumeRateLimit(
       resetAt: new Date(Date.now() + windowSeconds * 1000).toISOString(),
     };
   }
-  const data = await rpc<Record<string, any>[]>('consume_rate_limit', {
+  const data = await rpc<SupabaseRow[]>('consume_rate_limit', {
     p_key: key,
     p_limit: limit,
     p_window_seconds: windowSeconds,
@@ -756,7 +764,7 @@ export async function checkBackendHealth(): Promise<{
     await readDb();
     return { mode: 'local', database: 'ok' };
   }
-  await supabaseRequest<Record<string, any>[]>('agencies', {
+  await supabaseRequest<SupabaseRow[]>('agencies', {
     query: { select: 'id', limit: 1 },
   });
   return { mode: 'supabase', database: 'ok' };

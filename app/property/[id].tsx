@@ -3,7 +3,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Dimensions,
   FlatList,
   NativeScrollEvent,
@@ -21,9 +20,7 @@ import * as Haptics from 'expo-haptics';
 import { EmptyState } from '@/src/components/EmptyState';
 import { PrimaryButton } from '@/src/components/PrimaryButton';
 import { useApp } from '@/src/context/AppContext';
-import { useAuth } from '@/src/context/AuthContext';
 import { getAgencyById } from '@/src/data/repositories/agencies';
-import { createLead } from '@/src/data/repositories/leads';
 import { getPropertyById } from '@/src/data/repositories/properties';
 import { Agency, Property } from '@/src/data/types';
 import { colors, radius, shadows, spacing, typography } from '@/src/theme';
@@ -32,26 +29,16 @@ import { formatKesFull, formatPropertyType } from '@/src/utils/format';
 
 const { width } = Dimensions.get('window');
 
-async function safeHapticSuccess() {
-  try {
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-  } catch {
-    // web / unsupported
-  }
-}
-
 export default function PropertyScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isFavorite, toggleFavorite } = useApp();
-  const { user, profile } = useAuth();
 
   const [property, setProperty] = useState<Property | null>(null);
   const [agency, setAgency] = useState<Agency | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageIndex, setImageIndex] = useState(0);
-  const [requesting, setRequesting] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -100,39 +87,9 @@ export default function PropertyScreen() {
       ? `${formatKesFull(property.priceKes)} / month`
       : formatKesFull(property.priceKes);
 
-  const requestViewing = async () => {
-    if (!agency || !property || requesting) return;
-    setRequesting(true);
-
-    const message = `Viewing request for "${property.title}" (${priceLabel})`;
-    const result = await createLead({
-      propertyId: property.id,
-      agencyId: agency.id,
-      userId: user?.id,
-      name: profile?.fullName || user?.email || undefined,
-      phone: profile?.phone || undefined,
-      message,
-      type: 'viewing',
-    });
-
-    setRequesting(false);
-    await safeHapticSuccess();
-
-    if (!result.ok) {
-      Alert.alert('Could not send request', result.error ?? 'Try WhatsApp instead.');
-      return;
-    }
-
-    // Navigate to the confirmed screen for better UX
-    router.push({
-      pathname: '/confirmed',
-      params: {
-        type: 'viewing',
-        propertyTitle: property.title,
-        agencyName: agency.name,
-        propertyId: property.id,
-      },
-    });
+  const requestViewing = () => {
+    if (!agency || !property) return;
+    router.push(`/request-viewing/${property.id}`);
   };
 
   return (
@@ -266,11 +223,11 @@ export default function PropertyScreen() {
           )}
 
           <PrimaryButton
-            label={requesting ? 'Sending…' : 'Request viewing'}
+            label="Request viewing"
             icon="calendar-outline"
             variant={property.transactionType === 'sale' ? 'secondary' : 'primary'}
             onPress={requestViewing}
-            style={{ marginTop: spacing.xl, opacity: requesting ? 0.7 : 1 }}
+            style={{ marginTop: spacing.xl }}
           />
 
           {property.transactionType === 'sale' && (
@@ -291,14 +248,14 @@ export default function PropertyScreen() {
             label="Call"
             icon="call"
             variant="secondary"
-            fullWidth
+            style={{ flex: 1 }}
             onPress={() => openPhone(agency.phone)}
           />
           <PrimaryButton
             label="WhatsApp"
             icon="logo-whatsapp"
             variant="accent"
-            fullWidth
+            style={{ flex: 1 }}
             onPress={() =>
               openWhatsApp(
                 agency.whatsapp,
@@ -357,9 +314,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',

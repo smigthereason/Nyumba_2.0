@@ -69,6 +69,8 @@ export function PropertyCard({
         </View>
         {onToggleFavorite && (
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={isFavorite ? 'Remove from saved homes' : 'Save home'}
             style={styles.favBtn}
             onPress={(e) => {
               e.stopPropagation?.();
@@ -132,9 +134,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing.md,
     right: spacing.md,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(0,0,0,0.35)',
     alignItems: 'center',
     justifyContent: 'center',

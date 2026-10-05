@@ -3,7 +3,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -17,9 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { EmptyState } from '@/src/components/EmptyState';
 import { PrimaryButton } from '@/src/components/PrimaryButton';
 import { useApp } from '@/src/context/AppContext';
-import { useAuth } from '@/src/context/AuthContext';
 import { getAgencyById } from '@/src/data/repositories/agencies';
-import { createLead } from '@/src/data/repositories/leads';
 import { getPropertyById } from '@/src/data/repositories/properties';
 import { Agency, Property } from '@/src/data/types';
 import { colors, radius, shadows, spacing, typography } from '@/src/theme';
@@ -33,13 +30,11 @@ export default function WebPropertyPage() {
   const { width } = useWindowDimensions();
   const wide = width >= 960;
   const { isFavorite, toggleFavorite } = useApp();
-  const { user, profile } = useAuth();
 
   const [property, setProperty] = useState<Property | null>(null);
   const [agency, setAgency] = useState<Agency | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
-  const [requesting, setRequesting] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -82,24 +77,9 @@ export default function WebPropertyPage() {
 
   const hasCoords = property.lat != null && property.lng != null;
 
-  const requestViewing = async () => {
-    if (!agency || requesting) return;
-    setRequesting(true);
-    const result = await createLead({
-      propertyId: property.id,
-      agencyId: agency.id,
-      userId: user?.id,
-      name: profile?.fullName || user?.email || undefined,
-      phone: profile?.phone || undefined,
-      message: `Viewing request for "${property.title}" (${priceLabel})`,
-      type: 'viewing',
-    });
-    setRequesting(false);
-    if (!result.ok) {
-      Alert.alert('Could not send request', result.error ?? 'Try WhatsApp.');
-      return;
-    }
-    Alert.alert('Viewing requested', `${agency.name} will get your request.`);
+  const requestViewing = () => {
+    if (!agency) return;
+    router.push(`/request-viewing/${property.id}`);
   };
 
   const mapEmbedUrl = hasCoords
@@ -279,11 +259,11 @@ export default function WebPropertyPage() {
           </View>
 
           <PrimaryButton
-            label={requesting ? 'Sending…' : 'Request viewing'}
+            label="Request viewing"
             icon="calendar-outline"
             onPress={requestViewing}
             fullWidth
-            style={{ marginTop: spacing.sm, opacity: requesting ? 0.7 : 1 }}
+            style={{ marginTop: spacing.sm }}
           />
 
           {property.transactionType === 'sale' && (

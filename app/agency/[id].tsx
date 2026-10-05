@@ -172,14 +172,14 @@ export default function AgencyScreen() {
           label="Call"
           icon="call"
           variant="secondary"
-          fullWidth
+          style={{ flex: 1 }}
           onPress={() => openPhone(agency.phone)}
         />
         <PrimaryButton
           label="WhatsApp"
           icon="logo-whatsapp"
           variant="accent"
-          fullWidth
+          style={{ flex: 1 }}
           onPress={() =>
             openWhatsApp(
               agency.whatsapp,
@@ -220,9 +220,9 @@ const styles = StyleSheet.create({
   back: {
     position: 'absolute',
     left: spacing.lg,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',

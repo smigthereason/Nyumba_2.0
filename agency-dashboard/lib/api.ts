@@ -87,7 +87,7 @@ export function withCors(req: Request, res: NextResponse): NextResponse {
     res.headers.set('Access-Control-Allow-Origin', origin);
     res.headers.set('Vary', 'Origin');
     res.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.headers.set('Access-Control-Allow-Headers', 'Content-Type, X-Request-Id');
+    res.headers.set('Access-Control-Allow-Headers', 'Content-Type, X-Request-Id, Authorization');
   }
   return res;
 }

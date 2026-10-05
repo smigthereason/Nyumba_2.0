@@ -36,15 +36,15 @@ export default function BuyPropertyScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const [property, setProperty] = useState<Property | null>(null);
   const [agency, setAgency] = useState<Agency | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [step, setStep] = useState<'form' | 'invoice'>('form');
-  const [name, setName] = useState(user?.name ?? '');
-  const [phone, setPhone] = useState(user?.phone ?? '');
+  const [name, setName] = useState(profile?.fullName ?? '');
+  const [phone, setPhone] = useState(profile?.phone ?? '');
   const [email, setEmail] = useState(user?.email ?? '');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -74,6 +74,12 @@ export default function BuyPropertyScreen() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (!name && profile?.fullName) setName(profile.fullName);
+    if (!phone && profile?.phone) setPhone(profile.phone);
+    if (!email && user?.email) setEmail(user.email);
+  }, [profile, user, name, phone, email]);
+
   const goToInvoice = () => {
     setError(null);
     if (name.trim().length < 2) {
@@ -101,7 +107,7 @@ export default function BuyPropertyScreen() {
         userId: user?.id,
         name: name.trim(),
         phone: phone.trim(),
-        message: `Purchase request for "${property.title}" (ref ${reference}). Deposit invoice sent.`,
+        message: `Purchase enquiry for "${property.title}" (ref ${reference}). Deposit details were viewed in Nyumba.`,
         type: 'purchase',
       });
     }
@@ -241,8 +247,7 @@ export default function BuyPropertyScreen() {
                 />
 
                 <Text style={styles.invoiceNote}>
-                  Pay the booking deposit to secure this home. The agency will contact you to
-                  arrange the balance, paperwork, and viewing.
+                  Review the agency’s payment details, then contact the agency before sending funds. Nyumba does not verify payments in-app yet.
                 </Text>
               </View>
 
@@ -260,7 +265,7 @@ export default function BuyPropertyScreen() {
               )}
 
               <PrimaryButton
-                label={submitting ? 'Sending to agency…' : "I've made payment — Submit"}
+                label={submitting ? 'Sending enquiry…' : 'Send purchase enquiry'}
                 icon="checkmark-circle-outline"
                 variant="accent"
                 onPress={submitPurchase}

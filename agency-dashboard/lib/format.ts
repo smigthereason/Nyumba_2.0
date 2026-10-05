@@ -36,16 +36,27 @@ export function uid(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-export function waLink(phone?: string): string | null {
+function kenyaPhoneDigits(phone?: string): string | null {
   if (!phone) return null;
-  const digits = phone.replace(/\D/g, '');
-  if (digits.length < 9) return null;
-  return `https://wa.me/${digits}`;
+  let digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('0') && digits.length === 10) digits = `254${digits.slice(1)}`;
+  else if ((digits.startsWith('7') || digits.startsWith('1')) && digits.length === 9) digits = `254${digits}`;
+  return digits.length >= 9 ? digits : null;
+}
+
+export function waLink(phone?: string): string | null {
+  const digits = kenyaPhoneDigits(phone);
+  return digits ? `https://wa.me/${digits}` : null;
 }
 
 export function telLink(phone?: string): string | null {
   if (!phone) return null;
-  return `tel:${phone}`;
+  return `tel:${phone.replace(/\s+/g, '')}`;
+}
+
+export function smsLink(phone?: string): string | null {
+  if (!phone) return null;
+  return `sms:${phone.replace(/\s+/g, '')}`;
 }
 
 export function labelType(t: string): string {
