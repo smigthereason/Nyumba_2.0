@@ -100,7 +100,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    // @ts-expect-error web
     minHeight: '100%',
   } as any,
   main: {

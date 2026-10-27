@@ -130,7 +130,6 @@ export default function WebPropertyPage() {
             </View>
 
             {mapEmbedUrl && Platform.OS === 'web' ? (
-              // @ts-expect-error web-only iframe
               <iframe
                 title="Property location"
                 src={mapEmbedUrl}

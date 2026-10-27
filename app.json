@@ -29,7 +29,9 @@
       "package": "com.nyumba.app",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -60,10 +62,11 @@
     },
     "extra": {
       "router": {},
+      "publicApiUrl": "https://nyumba-2-0.vercel.app",
       "eas": {
-        "projectId": "92bf763c-854a-4000-a48e-b39f4a69fce4"
-      },
-      "publicApiUrl": "https://nyumba-2-0.vercel.app"
-    }
+        "projectId": "e20e13d7-2e46-4a3e-b539-91bf3fd3a6d1"
+      }
+    },
+    "owner": "smigthereason"
   }
 }

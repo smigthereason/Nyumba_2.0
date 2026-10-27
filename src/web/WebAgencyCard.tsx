@@ -54,12 +54,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     ...shadows.soft,
-    // @ts-expect-error web
     cursor: 'pointer',
     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
   } as any,
   cardHover: {
-    // @ts-expect-error web
     transform: [{ translateY: -4 }],
     ...shadows.card,
   } as any,

@@ -154,7 +154,6 @@ export default function MapScreen() {
                   <ActivityIndicator color={colors.primary} size="large" />
                 </View>
               ) : Platform.OS === 'web' ? (
-                // @ts-expect-error web-only
                 <iframe
                   title="Nyumba map"
                   src={mapUrl}
@@ -262,7 +261,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 280,
     alignItems: 'center',
-    justify: 'center',
+    justifyContent: 'center',
   },
   listPane: { width: '100%', gap: spacing.sm },
   tabletGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },

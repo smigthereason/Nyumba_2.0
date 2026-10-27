@@ -408,7 +408,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   sidebarSticky: {
-    // @ts-expect-error web sticky
     position: 'sticky',
     top: 16,
     alignSelf: 'flex-start',
@@ -455,7 +454,6 @@ const styles = StyleSheet.create({
     flex: 1,
     ...typography.body,
     color: colors.text,
-    // @ts-expect-error web
     outlineStyle: 'none',
   } as any,
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },

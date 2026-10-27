@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
   },
 
   hero: {
-    justify: 'center',
+    justifyContent: 'center',
     overflow: 'hidden',
     position: 'relative',
   },
@@ -561,7 +561,6 @@ const styles = StyleSheet.create({
     flex: 1,
     ...typography.body,
     color: colors.text,
-    // @ts-expect-error web
     outlineStyle: 'none',
     paddingVertical: 10,
   } as any,
