@@ -17,9 +17,19 @@ const imgs = {
     'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=1000&h=700&fit=crop',
   ],
   house2: [
-    'https://images.unsplash.com/photo-1600047509807-ba8f99d2cd00?w=1000&h=700&fit=crop',
+    // Verified working exterior: the previous first URL returned an inaccessible image.
+    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1000&h=700&fit=crop',
     'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1000&h=700&fit=crop',
     'https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=1000&h=700&fit=crop',
+  ],
+  // Distinct homes for the sixth guest-dashboard card and the coastal villa.
+  townhouse: [
+    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1000&h=700&fit=crop',
+    'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1000&h=700&fit=crop',
+  ],
+  coastalVilla: [
+    'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1000&h=700&fit=crop',
+    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1000&h=700&fit=crop',
   ],
   bedsitter: [
     'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=1000&h=700&fit=crop',
@@ -196,7 +206,7 @@ const seeds: Seed[] = [
     lat: -3.99,
     lng: 39.73,
     amenities: ['Parking', 'Garden', 'Furnished', 'Gated'] as Amenity[],
-    images: imgs.beach,
+    images: imgs.coastalVilla,
   },
   {
     id: 'prop-7',
@@ -842,7 +852,7 @@ const seeds: Seed[] = [
     lat: -1.288,
     lng: 36.775,
     amenities: ['Parking', 'Garden', 'Gated', 'CCTV'] as Amenity[],
-    images: imgs.house1,
+    images: imgs.townhouse,
   },
   {
     id: 'prop-38',

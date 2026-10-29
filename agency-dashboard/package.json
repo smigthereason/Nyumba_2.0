@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:guest": "node --test tests/guest-preview.test.cjs",
-    "test:auth-ui": "node --test tests/auth-motion.test.cjs"
+    "test:auth-ui": "node --test tests/auth-motion.test.cjs",
+    "test:listing-images": "node --test tests/listing-images.test.cjs"
   },
   "dependencies": {
     "next": "16.3.5",

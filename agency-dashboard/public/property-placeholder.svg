@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="title">
+  <title id="title">Property image unavailable</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#e8f4ed"/>
+      <stop offset="1" stop-color="#c7e1d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <circle cx="690" cy="90" r="70" fill="#dceee6"/>
+  <path d="M0 390Q130 325 260 390T530 390T800 390V500H0Z" fill="#b2d4c2"/>
+  <path d="M210 280 400 138 590 280" fill="none" stroke="#1d7054" stroke-width="25" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M259 272V400H541V272" fill="#f8fcf9" stroke="#1d7054" stroke-width="15" stroke-linejoin="round"/>
+  <path d="M364 399v-99h70v99" fill="#b2d4c2" stroke="#1d7054" stroke-width="11"/>
+  <path d="M286 312h48v48h-48zm180 0h48v48h-48z" fill="#b2d4c2" stroke="#1d7054" stroke-width="8"/>
+  <text x="400" y="453" fill="#17694e" font-family="Arial,sans-serif" font-size="19" font-weight="600" text-anchor="middle">Property photo unavailable</text>
+</svg>

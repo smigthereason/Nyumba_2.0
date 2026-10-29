@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { Pill } from '@/components/ui';
+import { ListingImage } from '@/components/listing-image';
 import { formatKes, labelType } from '@/lib/format';
 import { GUEST_AGENCY_ID } from '@/lib/guest-id';
 import type { Property, PropertyStatus, TransactionType, UpcomingProject } from '@/lib/types';
@@ -12,7 +13,6 @@ function statusTone(status: PropertyStatus) {
 }
 
 export function PropertyCard({ listing }: { listing: Property }) {
-  const img = listing.images[0];
   const price =
     listing.transactionType === 'rent'
       ? `${formatKes(listing.priceKes)} / ${listing.rentPeriod === 'year' ? 'yr' : 'mo'}`
@@ -21,9 +21,7 @@ export function PropertyCard({ listing }: { listing: Property }) {
   const readOnly = listing.agencyId === GUEST_AGENCY_ID;
   const content = (<>
       <div className="relative aspect-[16/10] bg-primary-soft">
-        {img ? (
-          <img src={img} alt="" className="h-full w-full object-cover" />
-        ) : null}
+        <ListingImage images={listing.images} title={listing.title} />
         <div className="absolute left-3 top-3 flex gap-1.5">
           <Pill tone={listing.transactionType === 'sale' ? 'accent' : 'green'}>
             {listing.transactionType === 'sale' ? 'Sale' : 'Rent'}
