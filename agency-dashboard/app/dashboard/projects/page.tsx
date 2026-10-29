@@ -2,6 +2,7 @@ import { ProjectCard } from '@/components/property-card';
 import { Button, EmptyState, PageHeader } from '@/components/ui';
 import { listAgencyProjects } from '@/lib/db';
 import { getCurrentAgency } from '@/lib/session';
+import { GUEST_AGENCY_ID } from '@/lib/guest-id';
 
 export default async function ProjectsPage() {
   const agency = await getCurrentAgency();
@@ -13,13 +14,13 @@ export default async function ProjectsPage() {
       <PageHeader
         title="Upcoming projects"
         subtitle="These appear above Rent / Buy on Discover in the Nyumba app."
-        action={<Button href="/dashboard/projects/new">Add project</Button>}
+        action={agency.id === GUEST_AGENCY_ID ? undefined : <Button href="/dashboard/projects/new">Add project</Button>}
       />
       {projects.length === 0 ? (
         <EmptyState
           title="No upcoming projects"
           body="Add a development and buyers will see it on Discover."
-          action={<Button href="/dashboard/projects/new">Add project</Button>}
+          action={agency.id === GUEST_AGENCY_ID ? undefined : <Button href="/dashboard/projects/new">Add project</Button>}
         />
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">

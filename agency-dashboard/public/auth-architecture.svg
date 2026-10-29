@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600" role="img" aria-label="Illustration of modern homes">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9cbb9e"/>
+      <stop offset=".60" stop-color="#b5c5ac"/>
+      <stop offset="1" stop-color="#5b8368"/>
+    </linearGradient>
+    <linearGradient id="wall" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f0ebdd"/>
+      <stop offset="1" stop-color="#a5b1a1"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2=".85" y2="1">
+      <stop stop-color="#c7d8c9"/>
+      <stop offset=".5" stop-color="#668e83"/>
+      <stop offset="1" stop-color="#294b48"/>
+    </linearGradient>
+    <pattern id="windows" width="98" height="120" patternUnits="userSpaceOnUse">
+      <rect width="62" height="83" x="19" y="16" fill="url(#glass)" stroke="#e7e5d8" stroke-width="7"/>
+      <path d="M19 52H81" stroke="#e3e4d7" stroke-width="5"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="1600" fill="url(#sky)"/>
+  <circle cx="1000" cy="260" r="210" fill="#f6eecb" opacity=".28"/>
+  <path d="M0 940Q290 790 620 930T1200 850V1600H0Z" fill="#6b9279" opacity=".5"/>
+  <g opacity=".88">
+    <path d="M56 730h320v660H56Z" fill="#c2c9ba"/>
+    <path d="M90 780h248v580H90Z" fill="url(#windows)"/>
+    <path d="M0 1050h120v520H0Z" fill="#5a7e70"/>
+  </g>
+  <path d="M310 590h490v800H310Z" fill="url(#wall)"/>
+  <path d="M340 630h430v690H340Z" fill="url(#windows)"/>
+  <path d="M290 565h530v42H290Z" fill="#526c5d"/>
+  <path d="M275 715h555v22H275Zm0 238h555v22H275Zm0 238h555v22H275Z" fill="#e4e2d3"/>
+  <path d="M810 765h340v690H810Z" fill="#c5c9bc"/>
+  <path d="M850 805h260v530H850Z" fill="url(#windows)"/>
+  <path d="M785 738h385v32H785Z" fill="#456a58"/>
+  <path d="M0 1340h1200v260H0Z" fill="#294f3c"/>
+  <path d="M0 1400q250-120 500-20t700-60v280H0Z" fill="#33664e"/>
+  <g fill="#305b46">
+    <circle cx="85" cy="1235" r="125"/><circle cx="175" cy="1265" r="103"/>
+    <circle cx="1070" cy="1270" r="144"/><circle cx="1190" cy="1180" r="110"/>
+  </g>
+  <g fill="#497b5a" opacity=".8">
+    <circle cx="135" cy="1200" r="73"/><circle cx="1095" cy="1200" r="91"/>
+  </g>
+</svg>

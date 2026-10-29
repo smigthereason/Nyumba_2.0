@@ -4,9 +4,11 @@ import { useState } from 'react';
 
 import { Button, Card, ErrorBanner, Field, Input, Textarea } from '@/components/ui';
 import { counties } from '@/lib/mock/locations';
+import { GUEST_AGENCY_ID } from '@/lib/guest-id';
 import type { Agency, BankAccount } from '@/lib/types';
 
 export function SettingsForm({ agency }: { agency: Agency }) {
+  const readOnly = agency.id === GUEST_AGENCY_ID;
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -37,6 +39,7 @@ export function SettingsForm({ agency }: { agency: Agency }) {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (readOnly) return;
     setBusy(true);
     setError(null);
     setOk(false);
@@ -73,6 +76,7 @@ export function SettingsForm({ agency }: { agency: Agency }) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-5">
+      {readOnly && <p className="rounded-xl border border-primary/20 bg-primary-soft px-4 py-3 text-sm text-primary-dark">Sample profile for exploration only. Settings cannot be changed in guest preview.</p>}
       <ErrorBanner>{error}</ErrorBanner>
       {ok ? (
         <div className="rounded-xl border border-primary/20 bg-primary-soft px-3.5 py-2.5 text-sm text-primary-dark">
@@ -80,115 +84,117 @@ export function SettingsForm({ agency }: { agency: Agency }) {
         </div>
       ) : null}
 
-      <Card className="space-y-4 p-5 sm:p-6">
-        <h2 className="text-base font-bold">Storefront</h2>
-        <Field label="Agency name">
-          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-        </Field>
-        <Field label="Bio">
-          <Textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} />
-        </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Email">
-            <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+      <fieldset disabled={readOnly} className="space-y-5 disabled:opacity-70">
+        <Card className="space-y-4 p-5 sm:p-6">
+          <h2 className="text-base font-bold">Storefront</h2>
+          <Field label="Agency name">
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </Field>
-          <Field label="Phone">
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <Field label="Bio">
+            <Textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} />
           </Field>
-          <Field label="WhatsApp">
-            <Input
-              value={form.whatsapp}
-              onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
-            />
-          </Field>
-          <Field label="Logo URL">
-            <Input
-              value={form.logoUrl}
-              onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
-            />
-          </Field>
-        </div>
-        <Field label="Cover URL">
-          <Input
-            value={form.coverUrl}
-            onChange={(e) => setForm({ ...form, coverUrl: e.target.value })}
-          />
-        </Field>
-        <Field label="Counties">
-          <div className="flex flex-wrap gap-2">
-            {counties.map((c) => {
-              const on = form.counties.includes(c.name);
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => toggleCounty(c.name)}
-                  className={
-                    on
-                      ? 'rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-white'
-                      : 'rounded-full bg-bg px-3 py-1.5 text-sm font-semibold text-muted'
-                  }
-                >
-                  {c.name}
-                </button>
-              );
-            })}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Email">
+              <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            </Field>
+            <Field label="Phone">
+              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            </Field>
+            <Field label="WhatsApp">
+              <Input
+                value={form.whatsapp}
+                onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+              />
+            </Field>
+            <Field label="Logo URL">
+              <Input
+                value={form.logoUrl}
+                onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
+              />
+            </Field>
           </div>
-        </Field>
-      </Card>
+          <Field label="Cover URL">
+            <Input
+              value={form.coverUrl}
+              onChange={(e) => setForm({ ...form, coverUrl: e.target.value })}
+            />
+          </Field>
+          <Field label="Counties">
+            <div className="flex flex-wrap gap-2">
+              {counties.map((c) => {
+                const on = form.counties.includes(c.name);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => toggleCounty(c.name)}
+                    className={
+                      on
+                        ? 'rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-white'
+                        : 'rounded-full bg-bg px-3 py-1.5 text-sm font-semibold text-muted'
+                    }
+                  >
+                    {c.name}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+        </Card>
 
-      <Card className="space-y-4 p-5 sm:p-6">
-        <h2 className="text-base font-bold">Bank details</h2>
-        <p className="text-sm text-muted">
-          Buyers copy this when they request to buy a house. Nyumba never holds the money.
-        </p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Bank">
-            <Input
-              value={form.bankName}
-              onChange={(e) => setForm({ ...form, bankName: e.target.value })}
-            />
-          </Field>
-          <Field label="Account name">
-            <Input
-              value={form.accountName}
-              onChange={(e) => setForm({ ...form, accountName: e.target.value })}
-            />
-          </Field>
-          <Field label="Account number">
-            <Input
-              value={form.accountNumber}
-              onChange={(e) => setForm({ ...form, accountNumber: e.target.value })}
-            />
-          </Field>
-          <Field label="Branch">
-            <Input
-              value={form.branch}
-              onChange={(e) => setForm({ ...form, branch: e.target.value })}
-            />
-          </Field>
-          <Field label="M-Pesa Paybill">
-            <Input
-              value={form.paybill}
-              onChange={(e) => setForm({ ...form, paybill: e.target.value })}
-            />
-          </Field>
-        </div>
-        <div className="rounded-2xl border border-primary bg-primary-soft p-4">
-          <p className="text-sm font-semibold text-primary-dark">What buyers see</p>
-          <dl className="mt-3 space-y-2 text-sm">
-            <Row label="Bank" value={form.bankName || '—'} />
-            <Row label="Account name" value={form.accountName || '—'} />
-            <Row label="Account number" value={form.accountNumber || '—'} />
-            <Row label="Branch" value={form.branch || '—'} />
-            {form.paybill ? <Row label="M-Pesa Paybill" value={form.paybill} last /> : null}
-          </dl>
-        </div>
-      </Card>
+        <Card className="space-y-4 p-5 sm:p-6">
+          <h2 className="text-base font-bold">Bank details</h2>
+          <p className="text-sm text-muted">
+            Buyers copy this when they request to buy a house. Nyumba never holds the money.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Bank">
+              <Input
+                value={form.bankName}
+                onChange={(e) => setForm({ ...form, bankName: e.target.value })}
+              />
+            </Field>
+            <Field label="Account name">
+              <Input
+                value={form.accountName}
+                onChange={(e) => setForm({ ...form, accountName: e.target.value })}
+              />
+            </Field>
+            <Field label="Account number">
+              <Input
+                value={form.accountNumber}
+                onChange={(e) => setForm({ ...form, accountNumber: e.target.value })}
+              />
+            </Field>
+            <Field label="Branch">
+              <Input
+                value={form.branch}
+                onChange={(e) => setForm({ ...form, branch: e.target.value })}
+              />
+            </Field>
+            <Field label="M-Pesa Paybill">
+              <Input
+                value={form.paybill}
+                onChange={(e) => setForm({ ...form, paybill: e.target.value })}
+              />
+            </Field>
+          </div>
+          <div className="rounded-2xl border border-primary bg-primary-soft p-4">
+            <p className="text-sm font-semibold text-primary-dark">What buyers see</p>
+            <dl className="mt-3 space-y-2 text-sm">
+              <Row label="Bank" value={form.bankName || '—'} />
+              <Row label="Account name" value={form.accountName || '—'} />
+              <Row label="Account number" value={form.accountNumber || '—'} />
+              <Row label="Branch" value={form.branch || '—'} />
+              {form.paybill ? <Row label="M-Pesa Paybill" value={form.paybill} last /> : null}
+            </dl>
+          </div>
+        </Card>
 
-      <Button type="submit" disabled={busy}>
-        {busy ? 'Saving…' : 'Save settings'}
-      </Button>
+        {!readOnly && <Button type="submit" disabled={busy}>
+          {busy ? 'Saving…' : 'Save settings'}
+        </Button>}
+      </fieldset>
     </form>
   );
 }

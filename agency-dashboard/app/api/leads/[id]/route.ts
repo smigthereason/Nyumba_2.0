@@ -1,6 +1,6 @@
 import { apiError, handleApiError, json, parseJsonObject, requestId } from '@/lib/api';
 import { updateAgencyLeadStatus } from '@/lib/db';
-import { requireApiAgency } from '@/lib/session';
+import { requireWritableApiAgency } from '@/lib/session';
 import type { LeadStatus } from '@/lib/types';
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -8,7 +8,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function PATCH(req: Request, ctx: Ctx) {
   const request = requestId(req);
   try {
-    const auth = await requireApiAgency();
+    const auth = await requireWritableApiAgency();
     if (auth.error) return auth.error;
     const { id } = await ctx.params;
     const body = await parseJsonObject(req, request);

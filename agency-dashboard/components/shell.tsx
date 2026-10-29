@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 
 import { Button, cn } from '@/components/ui';
+import { GUEST_AGENCY_ID } from '@/lib/guest-id';
 import type { Agency } from '@/lib/types';
 
 const NAV = [
@@ -28,10 +29,11 @@ export function Shell({
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const isGuest = agency.id === GUEST_AGENCY_ID;
 
-  async function logout() {
+  async function logout(destination = '/login') {
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.replace('/login');
+    router.replace(destination);
     router.refresh();
   }
 
@@ -91,8 +93,8 @@ export function Shell({
               <p className="truncate text-xs text-faint">{agency.email}</p>
             </div>
           </div>
-          <Button variant="ghost" className="mt-2 w-full justify-start" onClick={logout}>
-            Log out
+          <Button variant="ghost" className="mt-2 w-full justify-start" onClick={() => logout()}>
+            {isGuest ? 'Exit preview' : 'Log out'}
           </Button>
         </div>
       </aside>
@@ -114,13 +116,24 @@ export function Shell({
       {open ? (
         <div className="border-b border-line bg-surface px-4 py-3 lg:hidden">
           {nav}
-          <Button variant="ghost" className="mt-2 w-full justify-start" onClick={logout}>
-            Log out
+          <Button variant="ghost" className="mt-2 w-full justify-start" onClick={() => logout()}>
+            {isGuest ? 'Exit preview' : 'Log out'}
           </Button>
         </div>
       ) : null}
 
-      <main className="px-4 py-6 sm:px-8 lg:ml-[248px] lg:px-10 lg:py-8">{children}</main>
+      <main className="px-4 py-6 sm:px-8 lg:ml-[248px] lg:px-10 lg:py-8">
+        {isGuest && (
+          <div className="mb-7 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-primary-soft px-4 py-3 sm:px-5" role="status">
+            <div>
+              <p className="text-sm font-bold text-primary-dark">Guest preview · Read-only</p>
+              <p className="mt-0.5 text-xs leading-5 text-muted">You are viewing sample properties and enquiries, not live customer information. Saving and editing are disabled.</p>
+            </div>
+            <Button type="button" variant="secondary" onClick={() => logout('/onboarding')} className="whitespace-nowrap">Create an agency</Button>
+          </div>
+        )}
+        {children}
+      </main>
     </div>
   );
 }

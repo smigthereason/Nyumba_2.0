@@ -4,6 +4,7 @@ import { PropertyCard } from '@/components/property-card';
 import { Button, Card, EmptyState, PageHeader, Pill } from '@/components/ui';
 import { listAgencyLeads, listAgencyListings } from '@/lib/db';
 import { timeAgo } from '@/lib/format';
+import { GUEST_AGENCY_ID } from '@/lib/guest-id';
 import { getCurrentAgency } from '@/lib/session';
 
 export default async function OverviewPage() {
@@ -28,7 +29,7 @@ export default async function OverviewPage() {
       <PageHeader
         title={`Hi, ${agency.name.split(' ')[0]}`}
         subtitle="A quiet place to list homes and answer buyers."
-        action={<Button href="/dashboard/listings/new">Add listing</Button>}
+        action={agency.id === GUEST_AGENCY_ID ? undefined : <Button href="/dashboard/listings/new">Add listing</Button>}
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -81,7 +82,7 @@ export default async function OverviewPage() {
           <EmptyState
             title="No listings yet"
             body="Publish a home and it appears here and in the Nyumba app mock storefront."
-            action={<Button href="/dashboard/listings/new">Add listing</Button>}
+            action={agency.id === GUEST_AGENCY_ID ? undefined : <Button href="/dashboard/listings/new">Add listing</Button>}
           />
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">

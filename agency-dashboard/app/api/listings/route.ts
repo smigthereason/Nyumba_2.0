@@ -1,7 +1,7 @@
 import { apiError, handleApiError, json, parseJsonObject, requestId } from '@/lib/api';
 import { createAgencyListing, listAgencyListings } from '@/lib/db';
 import { uid } from '@/lib/format';
-import { requireApiAgency } from '@/lib/session';
+import { requireApiAgency, requireWritableApiAgency } from '@/lib/session';
 import { parseListingInput } from '@/lib/validate';
 
 export async function GET(req: Request) {
@@ -21,7 +21,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const id = requestId(req);
   try {
-    const auth = await requireApiAgency();
+    const auth = await requireWritableApiAgency();
     if (auth.error) return auth.error;
     const body = await parseJsonObject(req, id);
     if (body instanceof Response) return body;

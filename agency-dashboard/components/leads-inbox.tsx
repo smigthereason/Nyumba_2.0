@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { Button, Card, EmptyState, Pill } from '@/components/ui';
 import { smsLink, telLink, timeAgo, waLink } from '@/lib/format';
+import { GUEST_AGENCY_ID } from '@/lib/guest-id';
 import type { Lead, LeadStatus, Property } from '@/lib/types';
 
 const FILTERS: { id: 'new' | 'all' | 'contacted' | 'closed'; label: string }[] = [
@@ -20,6 +21,7 @@ export function LeadsInbox({
   leads: Lead[];
   listings: Property[];
 }) {
+  const readOnly = leads.some((lead) => lead.agencyId === GUEST_AGENCY_ID);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]['id']>('new');
   const [openId, setOpenId] = useState<string | null>(leads.find((l) => l.status === 'new')?.id ?? null);
   const [rows, setRows] = useState(leads);
@@ -32,6 +34,7 @@ export function LeadsInbox({
   const shown = rows.filter((l) => (filter === 'all' ? true : l.status === filter));
 
   async function setStatus(id: string, status: LeadStatus) {
+    if (readOnly) return;
     const res = await fetch(`/api/leads/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -113,7 +116,7 @@ export function LeadsInbox({
                       <p className="mt-1 text-sm leading-relaxed text-ink">{lead.message}</p>
                     </div>
 
-                    <div className="rounded-xl border border-line bg-bg px-4 py-3">
+                    {!readOnly && <div className="rounded-xl border border-line bg-bg px-4 py-3">
                       <p className="text-xs font-semibold uppercase tracking-wide text-faint">Contact buyer</p>
                       {lead.phone ? (
                         <>
@@ -129,9 +132,9 @@ export function LeadsInbox({
                           This older request has no phone number. New viewing requests require one.
                         </p>
                       )}
-                    </div>
+                    </div>}
 
-                    <div className="flex flex-wrap items-center gap-2 border-t border-line pt-4">
+                    {!readOnly && <div className="flex flex-wrap items-center gap-2 border-t border-line pt-4">
                       <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-faint">
                         Lead status
                       </span>
@@ -157,7 +160,8 @@ export function LeadsInbox({
                           Reopen
                         </Button>
                       )}
-                    </div>
+                    </div>}
+                    {readOnly && <p className="rounded-xl bg-primary-soft px-4 py-3 text-xs text-primary-dark">This is a sample request. Contact and status actions are unavailable in preview mode.</p>}
                   </div>
                 ) : null}
               </Card>

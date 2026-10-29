@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 
 import { apiError, handleApiError, json, requestId } from '@/lib/api';
 import { DataStoreError } from '@/lib/db';
-import { requireApiAgency } from '@/lib/session';
+import { requireWritableApiAgency } from '@/lib/session';
 
 export const runtime = 'nodejs';
 
@@ -30,7 +30,7 @@ function encodedPath(path: string) {
 export async function POST(req: Request) {
   const id = requestId(req);
   try {
-    const auth = await requireApiAgency();
+    const auth = await requireWritableApiAgency();
     if (auth.error) return auth.error;
 
     const contentLength = Number(req.headers.get('content-length') ?? 0);

@@ -48,3 +48,68 @@ select {
     color: #1a1f1c;
   }
 }
+
+@keyframes splash-pop {
+  from { opacity: .55; transform: translateY(8px) scale(.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes splash-load {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.splash-logo { animation: splash-pop 480ms ease-out both; }
+.splash-progress { animation: splash-load 980ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .splash-logo, .splash-progress { animation: none; }
+}
+
+/* Authentication: restrained entrance motion and tactile buttons. */
+@keyframes auth-enter {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes auth-photo-enter {
+  from { opacity: .7; transform: scale(1.035); }
+  to { opacity: 1; transform: scale(1); }
+}
+.auth-card { animation: auth-enter 650ms cubic-bezier(.2,.75,.2,1) both; }
+.auth-brand-entrance { animation: auth-enter 750ms cubic-bezier(.2,.75,.2,1) both; }
+.auth-brand-entrance-delayed { animation-delay: 130ms; }
+.auth-hero-image { animation: auth-photo-enter 1400ms ease-out both; }
+.auth-step-content { animation: auth-enter 320ms ease-out both; }
+.auth-cta {
+  transition: background-color 200ms ease, border-color 200ms ease,
+              box-shadow 200ms ease, transform 200ms ease;
+}
+.auth-cta:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(4, 69, 46, .10);
+}
+.auth-cta:not(:disabled):active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Total splash lifetime: 5 seconds, including the final 750ms fade-up. */
+.splash-overlay {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 750ms ease-in-out, transform 750ms cubic-bezier(.25,.75,.25,1);
+}
+.splash-overlay.splash-exit {
+  opacity: 0;
+  transform: translateY(-28px);
+  pointer-events: none;
+}
+.splash-progress { animation: splash-load 4250ms linear both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card, .auth-brand-entrance, .auth-hero-image, .auth-step-content,
+  .splash-logo, .splash-progress { animation: none; }
+  .auth-cta, .splash-overlay { transition: none; }
+  .auth-cta:not(:disabled):hover, .auth-cta:not(:disabled):active {
+    transform: none;
+    box-shadow: none;
+  }
+  .splash-overlay.splash-exit { transform: none; }
+}

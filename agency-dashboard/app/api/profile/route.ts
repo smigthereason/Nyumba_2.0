@@ -1,7 +1,7 @@
 import { apiError, handleApiError, json, parseJsonObject, requestId } from '@/lib/api';
 import { updateAgencyProfile } from '@/lib/db';
 import { counties } from '@/lib/mock/locations';
-import { requireApiAgency } from '@/lib/session';
+import { requireApiAgency, requireWritableApiAgency } from '@/lib/session';
 import type { BankAccount } from '@/lib/types';
 import { isEmail } from '@/lib/validate';
 
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 export async function PUT(req: Request) {
   const id = requestId(req);
   try {
-    const auth = await requireApiAgency();
+    const auth = await requireWritableApiAgency();
     if (auth.error) return auth.error;
     const body = await parseJsonObject(req, id);
     if (body instanceof Response) return body;

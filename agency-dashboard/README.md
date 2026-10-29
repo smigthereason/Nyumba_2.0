@@ -19,10 +19,28 @@ npm run dev
 
 Without Supabase server credentials, development uses the local seeded `data/db.json` store. This mode is for demos only.
 
-Demo local login:
+### Guest preview (local and production)
 
-- Email: `hello@safarihomes.co.ke`
-- Password: `nyumba-demo`
+Both `/login` and `/onboarding` have a **Continue as guest** action.
+It sets a signed HTTP-only guest cookie and displays self-contained sample agency,
+listings, projects and leads — it never creates a Supabase user or reads actual
+agency/customer records. Guest mode is **read-only**. Mutation APIs return HTTP 403;
+server-side data functions also reject guest writes. Use **Exit preview** to return
+to sign-in, or **Create an agency** in the preview banner to register a real account.
+
+To run the guest preview security regression tests:
+
+```bash
+npm run test:guest
+```
+
+When Supabase credentials are absent, local development also seeds a demo account:
+`hello@safarihomes.co.ke` / `nyumba-demo`. **These credentials do not automatically
+exist in Supabase/production** and are no longer prefilled on the login form.
+
+The authentication hero uses an Unsplash property photograph, which requires an
+internet connection; the dark green background remains as the fallback. The logo
+splash appears once per browser tab session and respects reduced-motion settings.
 
 ## Production
 

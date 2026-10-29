@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { Pill } from '@/components/ui';
 import { formatKes, labelType } from '@/lib/format';
+import { GUEST_AGENCY_ID } from '@/lib/guest-id';
 import type { Property, PropertyStatus, TransactionType, UpcomingProject } from '@/lib/types';
 
 function statusTone(status: PropertyStatus) {
@@ -17,11 +18,8 @@ export function PropertyCard({ listing }: { listing: Property }) {
       ? `${formatKes(listing.priceKes)} / ${listing.rentPeriod === 'year' ? 'yr' : 'mo'}`
       : formatKes(listing.priceKes);
 
-  return (
-    <Link
-      href={`/dashboard/listings/${listing.id}/edit`}
-      className="group overflow-hidden rounded-2xl border border-line bg-surface shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:border-primary/30"
-    >
+  const readOnly = listing.agencyId === GUEST_AGENCY_ID;
+  const content = (<>
       <div className="relative aspect-[16/10] bg-primary-soft">
         {img ? (
           <img src={img} alt="" className="h-full w-full object-cover" />
@@ -45,8 +43,11 @@ export function PropertyCard({ listing }: { listing: Property }) {
         </p>
         <p className="mt-3 text-base font-bold text-primary">{price}</p>
       </div>
-    </Link>
-  );
+    </>);
+  const className = 'group block overflow-hidden rounded-2xl border border-line bg-surface shadow-[var(--shadow-card)] transition hover:border-primary/30';
+  return readOnly
+    ? <div className={className}>{content}</div>
+    : <Link href={`/dashboard/listings/${listing.id}/edit`} className={`${className} hover:-translate-y-0.5`}>{content}</Link>;
 }
 
 export function ProjectCard({
@@ -56,11 +57,7 @@ export function ProjectCard({
   project: UpcomingProject;
   href: string;
 }) {
-  return (
-    <Link
-      href={href}
-      className="group overflow-hidden rounded-2xl border border-line bg-surface shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:border-primary/30"
-    >
+  const content = (<>
       <div className="relative aspect-[16/10] bg-primary-soft">
         <img src={project.imageUrl} alt="" className="h-full w-full object-cover" />
       </div>
@@ -74,8 +71,11 @@ export function ProjectCard({
           <span className="text-faint">{project.completionLabel}</span>
         </div>
       </div>
-    </Link>
-  );
+    </>);
+  const className = 'group block overflow-hidden rounded-2xl border border-line bg-surface shadow-[var(--shadow-card)] transition hover:border-primary/30';
+  return project.agencyId === GUEST_AGENCY_ID
+    ? <div className={className}>{content}</div>
+    : <Link href={href} className={`${className} hover:-translate-y-0.5`}>{content}</Link>;
 }
 
 export function TxPill({ type }: { type: TransactionType }) {

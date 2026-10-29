@@ -3,6 +3,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 import { buildSeed } from '@/lib/seed';
+import { guestAgency, guestListings, guestProjects, guestLeads, guestPage } from '@/lib/guest';
+import { GUEST_AGENCY_ID } from '@/lib/guest-id';
 import type {
   Agency,
   AgencyAccount,
@@ -35,6 +37,12 @@ export function isSupabaseBackendConfigured(): boolean {
   const url = process.env.SUPABASE_URL ?? '';
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
   return Boolean(url.startsWith('http') && serviceKey.length > 20);
+}
+
+function assertNotGuest(agencyId: string): void {
+  if (agencyId === GUEST_AGENCY_ID) {
+    throw new DataStoreError('Guest preview is read-only.', 'GUEST_READ_ONLY');
+  }
 }
 
 export function backendMode(): 'supabase' | 'local' {
@@ -320,6 +328,7 @@ async function countRows(table: string, filters: Record<string, string>): Promis
 }
 
 export async function getAgencyById(id: string): Promise<Agency | null> {
+  if (id === GUEST_AGENCY_ID) return { ...guestAgency };
   if (!isSupabaseBackendConfigured()) {
     const db = await readDb();
     const account = db.agencies.find((a) => a.id === id);
@@ -406,6 +415,7 @@ export async function createAgencyAccount(input: {
 }
 
 export async function updateAgencyProfile(agencyId: string, agency: Agency): Promise<Agency> {
+  assertNotGuest(agencyId);
   if (!isSupabaseBackendConfigured()) {
     let updated: Agency | null = null;
     await updateDb((db) => {
@@ -453,6 +463,7 @@ export async function listAgencyListings(
   limit = 100,
   offset = 0
 ): Promise<Property[]> {
+  if (agencyId === GUEST_AGENCY_ID) return guestPage(guestListings, limit, offset);
   if (!isSupabaseBackendConfigured()) {
     const db = await readDb();
     return db.properties
@@ -473,6 +484,7 @@ export async function listAgencyListings(
 }
 
 export async function getAgencyListing(agencyId: string, id: string): Promise<Property | null> {
+  if (agencyId === GUEST_AGENCY_ID) return guestListings.find((p) => p.id === id) ?? null;
   if (!isSupabaseBackendConfigured()) {
     const db = await readDb();
     return db.properties.find((p) => p.id === id && p.agencyId === agencyId) ?? null;
@@ -484,6 +496,7 @@ export async function getAgencyListing(agencyId: string, id: string): Promise<Pr
 }
 
 export async function createAgencyListing(property: Property): Promise<Property> {
+  assertNotGuest(property.agencyId);
   if (!isSupabaseBackendConfigured()) {
     await updateDb((db) => db.properties.unshift(property));
     return property;
@@ -498,6 +511,7 @@ export async function createAgencyListing(property: Property): Promise<Property>
 }
 
 export async function updateAgencyListing(property: Property): Promise<Property> {
+  assertNotGuest(property.agencyId);
   if (!isSupabaseBackendConfigured()) {
     await updateDb((db) => {
       const i = db.properties.findIndex((p) => p.id === property.id && p.agencyId === property.agencyId);
@@ -517,6 +531,7 @@ export async function updateAgencyListing(property: Property): Promise<Property>
 }
 
 export async function deleteAgencyListing(agencyId: string, id: string): Promise<boolean> {
+  assertNotGuest(agencyId);
   if (!isSupabaseBackendConfigured()) {
     let found = false;
     await updateDb((db) => {
@@ -539,6 +554,7 @@ export async function listAgencyProjects(
   limit = 100,
   offset = 0
 ): Promise<UpcomingProject[]> {
+  if (agencyId === GUEST_AGENCY_ID) return guestPage(guestProjects, limit, offset);
   if (!isSupabaseBackendConfigured()) {
     const db = await readDb();
     return db.projects
@@ -558,6 +574,7 @@ export async function listAgencyProjects(
 }
 
 export async function getAgencyProject(agencyId: string, id: string): Promise<UpcomingProject | null> {
+  if (agencyId === GUEST_AGENCY_ID) return guestProjects.find((p) => p.id === id) ?? null;
   if (!isSupabaseBackendConfigured()) {
     const db = await readDb();
     return db.projects.find((p) => p.id === id && p.agencyId === agencyId) ?? null;
@@ -569,6 +586,7 @@ export async function getAgencyProject(agencyId: string, id: string): Promise<Up
 }
 
 export async function createAgencyProject(project: UpcomingProject): Promise<UpcomingProject> {
+  assertNotGuest(project.agencyId);
   if (!isSupabaseBackendConfigured()) {
     await updateDb((db) => db.projects.unshift(project));
     return project;
@@ -583,6 +601,7 @@ export async function createAgencyProject(project: UpcomingProject): Promise<Upc
 }
 
 export async function updateAgencyProject(project: UpcomingProject): Promise<UpcomingProject> {
+  assertNotGuest(project.agencyId);
   if (!isSupabaseBackendConfigured()) {
     await updateDb((db) => {
       const i = db.projects.findIndex((p) => p.id === project.id && p.agencyId === project.agencyId);
@@ -602,6 +621,7 @@ export async function updateAgencyProject(project: UpcomingProject): Promise<Upc
 }
 
 export async function deleteAgencyProject(agencyId: string, id: string): Promise<boolean> {
+  assertNotGuest(agencyId);
   if (!isSupabaseBackendConfigured()) {
     let found = false;
     await updateDb((db) => {
@@ -624,6 +644,7 @@ export async function listAgencyLeads(
   limit = 100,
   offset = 0
 ): Promise<Lead[]> {
+  if (agencyId === GUEST_AGENCY_ID) return guestPage(guestLeads(), limit, offset);
   if (!isSupabaseBackendConfigured()) {
     const db = await readDb();
     return db.leads
@@ -644,6 +665,7 @@ export async function listAgencyLeads(
 }
 
 export async function countNewLeads(agencyId: string): Promise<number> {
+  if (agencyId === GUEST_AGENCY_ID) return guestLeads().filter((l) => l.status === 'new').length;
   if (!isSupabaseBackendConfigured()) {
     const db = await readDb();
     return db.leads.filter((l) => l.agencyId === agencyId && l.status === 'new').length;
@@ -656,6 +678,7 @@ export async function updateAgencyLeadStatus(
   id: string,
   status: LeadStatus
 ): Promise<Lead | null> {
+  assertNotGuest(agencyId);
   if (!isSupabaseBackendConfigured()) {
     let lead: Lead | null = null;
     await updateDb((db) => {
@@ -679,6 +702,7 @@ export async function updateAgencyLeadStatus(
 export async function createPublicLead(
   input: Omit<Lead, 'id' | 'createdAt' | 'status'> & { userId?: string | null }
 ): Promise<Lead> {
+  assertNotGuest(input.agencyId);
   if (!isSupabaseBackendConfigured()) {
     const lead: Lead = {
       propertyId: input.propertyId,

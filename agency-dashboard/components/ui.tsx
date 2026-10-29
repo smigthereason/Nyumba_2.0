@@ -120,12 +120,14 @@ export function Field({
 const fieldClass =
   'w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-faint focus:border-primary focus:ring-4 focus:ring-primary-soft';
 
-export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={cn(fieldClass, props.className)} {...props} />;
+export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+  // Spread the remaining props first so an icon's padding classes cannot
+  // accidentally override the standard border, background and focus styles.
+  return <input {...props} className={cn(fieldClass, className)} />;
 }
 
-export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea className={cn(fieldClass, 'min-h-[96px] resize-y', props.className)} {...props} />;
+export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea {...props} className={cn(fieldClass, 'min-h-[96px] resize-y', className)} />;
 }
 
 export function Select({

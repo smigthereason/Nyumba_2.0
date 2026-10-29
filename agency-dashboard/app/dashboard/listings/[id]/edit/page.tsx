@@ -1,9 +1,10 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 import { ListingForm } from '@/components/listing-form';
 import { PageHeader } from '@/components/ui';
 import { getAgencyListing } from '@/lib/db';
 import { getCurrentAgency } from '@/lib/session';
+import { GUEST_AGENCY_ID } from '@/lib/guest-id';
 
 export default async function EditListingPage({
   params,
@@ -12,6 +13,7 @@ export default async function EditListingPage({
 }) {
   const agency = await getCurrentAgency();
   if (!agency) return null;
+  if (agency.id === GUEST_AGENCY_ID) redirect('/dashboard/listings');
   const { id } = await params;
   const listing = await getAgencyListing(agency.id, id);
   if (!listing) notFound();

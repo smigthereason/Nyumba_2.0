@@ -1,6 +1,6 @@
 import { apiError, handleApiError, json, parseJsonObject, requestId } from '@/lib/api';
 import { deleteAgencyProject, getAgencyProject, updateAgencyProject } from '@/lib/db';
-import { requireApiAgency } from '@/lib/session';
+import { requireWritableApiAgency } from '@/lib/session';
 import { parseProjectInput } from '@/lib/validate';
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -8,7 +8,7 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function PUT(req: Request, ctx: Ctx) {
   const request = requestId(req);
   try {
-    const auth = await requireApiAgency();
+    const auth = await requireWritableApiAgency();
     if (auth.error) return auth.error;
     const { id } = await ctx.params;
     const body = await parseJsonObject(req, request);
@@ -27,7 +27,7 @@ export async function PUT(req: Request, ctx: Ctx) {
 export async function DELETE(req: Request, ctx: Ctx) {
   const request = requestId(req);
   try {
-    const auth = await requireApiAgency();
+    const auth = await requireWritableApiAgency();
     if (auth.error) return auth.error;
     const { id } = await ctx.params;
     const found = await deleteAgencyProject(auth.agency.id, id);
